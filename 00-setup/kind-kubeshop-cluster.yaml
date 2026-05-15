@@ -1,0 +1,26 @@
+# kind-kubeshop-cluster.yaml
+# Épisode 00 — Configuration du cluster Kind pour KubeShop
+#
+# Crée un cluster à 3 noeuds :
+#   - 1 control-plane (cerveau du cluster)
+#   - 2 workers (exécutent les workloads)
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+
+name: kubeshop
+
+nodes:
+  # --- Nœud Control Plane ---
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 80       # Pour l'Ingress HTTP (épisode 06)
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443      # Pour l'Ingress HTTPS (épisode 06)
+        hostPort: 443
+        protocol: TCP
+
+  # --- Workers ---
+  - role: worker
+  - role: worker
