@@ -1,0 +1,19 @@
+# namespace.yaml
+# Épisode 01 — Pods & Namespaces
+#
+# 🎯 Rôle : Un Namespace est une "bulle d'isolation" dans le cluster.
+#           Tout ce qui appartient à KubeShop vivra dans ce namespace.
+#
+# 💡 Pourquoi ? Sans namespace, tout s'accumule dans "default" → chaos assuré.
+#               Les namespaces permettent d'isoler, de sécuriser, de quoter.
+#
+# ⚠️  Erreur classique : oublier -n kubeshop dans les commandes kubectl
+#                        et ne pas trouver ses ressources !
+
+apiVersion: v1            # API de base de Kubernetes (Pod, Namespace, Service...)
+kind: Namespace           # Type de ressource
+metadata:
+  name: kubeshop          # Nom du namespace — on l'utilisera dans TOUS les épisodes
+  labels:
+    project: kubeshop     # Label pour identifier/filtrer facilement
+    managed-by: kubectl   # Bonne pratique : tracer qui gère cette ressource

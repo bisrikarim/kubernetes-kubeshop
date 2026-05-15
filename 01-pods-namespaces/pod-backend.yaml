@@ -1,0 +1,47 @@
+# pod-backend.yaml
+# Épisode 01 — Deuxième Pod : le Backend API
+#
+# 🎯 Notre backend : une API simple basée sur l'image "hashicorp/http-echo"
+#                   Elle répond à toutes les requêtes avec un message configurable.
+#                   Parfaite pour apprendre sans avoir à coder une vraie API.
+#
+# 💡 En épisode 03, on la remplacera par une vraie image backend.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend
+  namespace: kubeshop
+  labels:
+    app: backend
+    tier: api
+    episode: "01"
+spec:
+  containers:
+    - name: backend
+      image: hashicorp/http-echo:latest
+      args:
+        - "-text=🛍️ KubeShop API — épisode 01 — ça marche !"
+        # Cette image prend un argument "-text" et renvoie ce texte sur port 5678
+      ports:
+        - containerPort: 5678
+          name: http-api
+      resources:
+        requests:
+          memory: "32Mi"
+          cpu: "50m"
+        limits:
+          memory: "64Mi"
+          cpu: "100m"
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 5678
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 5678
+        initialDelaySeconds: 3
+        periodSeconds: 5

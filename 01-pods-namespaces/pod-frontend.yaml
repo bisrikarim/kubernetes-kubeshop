@@ -1,0 +1,64 @@
+# pod-frontend.yaml
+# Épisode 01 — Premier Pod : le Frontend
+#
+# 🎯 Rôle : Un Pod est l'unité de base de Kubernetes.
+#            C'est un wrapper autour d'un ou plusieurs containers.
+#
+# 💡 Pourquoi pas juste "docker run" ?
+#    Kubernetes gère le placement, le redémarrage, la mise en réseau.
+#    Le Pod est l'abstraction qui permet tout ça.
+#
+# ⚠️  Erreur classique : créer des Pods "nus" en production.
+#                        En vrai, on utilise des Deployments (épisode 03) !
+#                        Les Pods seuls ne sont PAS redémarrés si le nœud crash.
+#
+# 🏋️  Cet épisode : on crée un Pod nu pour comprendre la brique de base.
+#                   Épisode 03, on passera aux Deployments.
+
+apiVersion: v1            # Les Pods utilisent l'API v1 (core API)
+kind: Pod                 # Type de ressource : Pod
+metadata:
+  name: frontend          # Nom du Pod — doit être unique dans le namespace
+  namespace: kubeshop     # Dans quel namespace ce Pod vit
+  labels:
+    app: frontend         # Label clé/valeur — permet aux Services de trouver ce Pod
+    tier: web             # Couche applicative (web / api / db)
+    episode: "01"         # Label pédagogique pour tracer l'épisode
+spec:                     # La "spec" décrit l'état DÉSIRÉ du Pod
+  containers:             # Liste des containers dans ce Pod
+    - name: frontend      # Nom du container (dans le Pod)
+      image: nginx:1.25   # Image Docker — toujours pin une version, jamais "latest" !
+      ports:
+        - containerPort: 80   # Port exposé par le container (informatif, pas obligatoire)
+          name: http          # Nom du port — utile pour les Services
+      
+      # --- Ressources (bonne pratique dès le début) ---
+      # requests : ce que le container DEMANDE au scheduler
+      # limits   : le maximum qu'il peut consommer
+      resources:
+        requests:
+          memory: "64Mi"    # 64 mégaoctets minimum garanti
+          cpu: "100m"       # 100 millicores = 0.1 vCPU
+        limits:
+          memory: "128Mi"   # Jamais plus de 128Mi → OOMKilled sinon
+          cpu: "200m"       # Jamais plus de 0.2 vCPU
+
+      # --- Liveness Probe ---
+      # Kubernetes vérifie que le container est vivant.
+      # Si ça échoue → restart automatique du container.
+      livenessProbe:
+        httpGet:
+          path: /           # Endpoint à appeler
+          port: 80
+        initialDelaySeconds: 10   # Attendre 10s avant la première vérif
+        periodSeconds: 15         # Vérifier toutes les 15s
+
+      # --- Readiness Probe ---
+      # Kubernetes vérifie que le container est PRÊT à recevoir du trafic.
+      # Si ça échoue → le Pod est retiré du Service (pas de trafic envoyé).
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 10
