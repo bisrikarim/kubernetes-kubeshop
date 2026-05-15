@@ -1,0 +1,4 @@
+# Ne jamais committer de vrais secrets
+*-real.yaml
+*-prod.yaml
+*.env

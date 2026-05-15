@@ -1,0 +1,119 @@
+# pod-backend-v2.yaml
+# Épisode 02 — Pod Backend corrigé
+#
+# 🎯 Correction : les variables dans args doivent être déclarées
+#                 dans env: pour être disponibles à l'interpolation.
+#
+# ⚠️  Règle importante :
+#     $(VAR) dans args/command fonctionne UNIQUEMENT si VAR
+#     est déclarée dans env: du MÊME container.
+#     envFrom n'est PAS disponible pour l'interpolation dans args/command.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend
+  namespace: kubeshop
+  labels:
+    app: backend
+    tier: api
+    episode: "02"
+spec:
+  containers:
+    - name: backend
+      image: hashicorp/http-echo:latest
+
+      # ✅ Les variables utilisées dans args DOIVENT être dans env:
+      # $(VAR_NAME) fonctionne uniquement depuis env:, pas depuis envFrom:
+      command: ["/http-echo"]
+      args:
+        - "-text=🛍️ $(APP_NAME) — ENV=$(APP_ENV) — Port=$(APP_PORT)"
+
+      env:
+        # --- Variables utilisées dans args (interpolation) ---
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: APP_NAME
+
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: APP_ENV
+
+        - name: APP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: APP_PORT
+
+        # --- Credentials depuis Secret ---
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DB_PASSWORD
+
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DB_USER
+
+        - name: APP_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: APP_SECRET_KEY
+
+        # --- Reste de la config depuis ConfigMap ---
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: DB_HOST
+
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: DB_PORT
+
+        # ✅ DB_NAME vient d'UN SEUL endroit (ConfigMap)
+        # → pas de conflit avec le Secret
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: DB_NAME
+
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: LOG_LEVEL
+
+      ports:
+        - containerPort: 5678
+          name: http-api
+      resources:
+        requests:
+          memory: "32Mi"
+          cpu: "50m"
+        limits:
+          memory: "64Mi"
+          cpu: "100m"
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 5678
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 5678
+        initialDelaySeconds: 3
+        periodSeconds: 5

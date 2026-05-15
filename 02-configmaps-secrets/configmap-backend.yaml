@@ -1,0 +1,39 @@
+# 🎯 Rôle : Stocker la configuration NON sensible de l'application.
+#            Séparation config / code → même image, configs différentes.
+#
+# 💡 Un ConfigMap peut être consommé de 3 façons :
+#    1. Variables d'environnement (envFrom / env)  ← on fait ça aujourd'hui
+#    2. Arguments de commande
+#    3. Fichiers montés dans un Volume (épisode 05)
+#
+# ⚠️  Erreur classique : mettre des mots de passe dans un ConfigMap !
+#                        → Utiliser Secret pour tout ce qui est sensible.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config        # Nom du ConfigMap — référencé dans le Pod
+  namespace: kubeshop
+  labels:
+    app: backend
+    episode: "02"
+data:                         # Les données clé/valeur — tout est en string
+  # --- Configuration applicative ---
+  APP_ENV: "production"       # Environnement de l'app
+  APP_PORT: "5678"            # Port d'écoute du backend
+  APP_NAME: "KubeShop API"    # Nom de l'application
+
+  # --- Configuration base de données (host/port seulement, pas le password !) ---
+  DB_HOST: "postgres"         # Nom du Service PostgreSQL (épisode 04)
+  DB_PORT: "5432"             # Port standard PostgreSQL
+  DB_NAME: "kubeshop"         # Nom de la base de données
+
+  # --- Configuration logs ---
+  LOG_LEVEL: "info"           # debug | info | warn | error
+
+  # --- Configuration multi-lignes (exemple nginx.conf) ---
+  # On peut aussi stocker des fichiers entiers dans un ConfigMap !
+  app-message: |
+    Bienvenue sur KubeShop API
+    Environnement : production
+    Version : 1.0.0
